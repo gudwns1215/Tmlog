@@ -1,9 +1,9 @@
-__all__ = ['Tmlog']
+__all__ = ['Lg']
 
 from time import time
 from collections import defaultdict
 
-class Tmlog():
+class Lg():
     def __init__(self, prefix="", timer=time, print_fn=print):
         self.prefix = prefix
         self.timer = timer
