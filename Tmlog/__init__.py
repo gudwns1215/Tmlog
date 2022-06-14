@@ -2,12 +2,14 @@ __all__ = ['Lg']
 
 from time import time
 from collections import defaultdict
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Lg():
-    def __init__(self, prefix="", timer=time, print_fn=print):
+    def __init__(self, prefix="", timer=time):
         self.prefix = prefix
         self.timer = timer
-        self.print_fn = print_fn
 
         self.stack_time = defaultdict(lambda: 0)
 
@@ -33,7 +35,18 @@ class Lg():
                 with tl.stk("some codes"):
                     {some codes}
         """
+        self.setup_logger()
+    
+    def setup_logger(self):
+        logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('Tmlog.log', mode='a')
+        ch = logging.StreamHandler()
 
+        fh.setFormatter(logging.Formatter('%(asctime)s - (%(filename)s:%(lineno)d) - %(message)s'))
+        ch.setFormatter(CustomStreamFormatter())
+
+        logger.addHandler(fh)
+        logger.addHandler(ch)
 
     def __enter__(self):
         self.total_st_time = self.timer()
@@ -51,7 +64,31 @@ class Lg():
                 self.sub_printer(k, v)
 
     def printer(self, prefix, pasts):
-        self.print_fn("[{}] time pasts: {:.2f} seconds".format(prefix, pasts))
+        logger.info("[{}] time took: {:.2f}s".format(prefix, pasts))
 
     def sub_printer(self, key, pasts):
-        self.print_fn("\t{}: {:.2f} sec".format(key, pasts))
+        logger.info("\t[{}] time took: {:.2f}s".format(key, pasts))
+
+        
+class CustomStreamFormatter(logging.Formatter):
+    def __init__(self):
+        grey = "\x1b[38;20m"
+        green = '\x1b[33;32m'
+        yellow = "\x1b[33;20m"
+        red = "\x1b[31;20m"
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+        format = "(%(filename)s:%(lineno)d) - %(message)s"
+        
+        self.FORMATS = {
+            logging.DEBUG: grey + format + reset,
+            logging.INFO: green + format + reset,
+            logging.WARNING: yellow + format + reset,
+            logging.ERROR: red + format + reset,
+            logging.CRITICAL: bold_red + format + reset
+        }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
