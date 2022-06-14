@@ -2,3 +2,4 @@ dist/
 build/
 Tmlog.egg-info/
 *.pyc
+venv
